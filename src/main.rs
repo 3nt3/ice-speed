@@ -1,73 +1,4 @@
-use chrono::{serde::ts_milliseconds, serde::ts_milliseconds_option, DateTime, Utc};
-use serde::Deserialize;
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct TrainStatus {
-    speed: f32,
-    train_type: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct TripResponse {
-    trip: Trip,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Trip {
-    stops: Vec<Stop>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Stop {
-    station: Station,
-    timetable: Timetable,
-    info: StopInfo,
-    track: Track,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Station {
-    eva_nr: String,
-    name: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Timetable {
-    #[serde(with = "ts_milliseconds_option")]
-    scheduled_arrival_time: Option<DateTime<Utc>>,
-    #[serde(with = "ts_milliseconds_option")]
-    actual_arrival_time: Option<DateTime<Utc>>,
-    arrival_delay: String,
-    #[serde(with = "ts_milliseconds_option")]
-    scheduled_departure_time: Option<DateTime<Utc>>,
-    #[serde(with = "ts_milliseconds_option")]
-    actual_departure_time: Option<DateTime<Utc>>,
-    show_actual_departure_time: Option<bool>,
-    departure_delay: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct StopInfo {
-    status: i32,
-    passed: bool,
-    position_status: String,
-    distance: i32,
-    distance_from_start: i32,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Track {
-    scheduled: String,
-    actual: String,
-}
+mod models;
 
 #[tokio::main]
 async fn main() {
@@ -81,7 +12,7 @@ async fn main() {
         .send()
         .await
         .unwrap()
-        .json::<TrainStatus>()
+        .json::<models::TrainStatus>()
         .await
         .unwrap_or_else(|why| panic!("error deserializing: {}", why));
 
@@ -94,7 +25,7 @@ async fn main() {
         .send()
         .await
         .unwrap()
-        .json::<TripResponse>()
+        .json::<models::TripResponse>()
         .await
         .unwrap_or_else(|why| panic!("error deserializing trip info: {}", why));
 
