@@ -1,3 +1,5 @@
+use chrono::{DateTime, Local};
+
 mod models;
 
 #[tokio::main]
@@ -27,9 +29,33 @@ async fn main() {
         .unwrap()
         .json::<models::TripResponse>()
         .await
-        .unwrap_or_else(|why| panic!("error deserializing trip info: {}", why));
+        .unwrap_or_else(|why| panic!("error deserializing trip info: {}", why))
+        .trip;
 
-    dbg!(trip);
+    let now = chrono::Utc::now();
+    for stop in trip.stops {
+        if stop
+            .timetable
+            .actual_arrival_time
+            .map(|time| time.timestamp_millis() < now.timestamp_millis())
+            .unwrap_or(true)
+            || stop.timetable.actual_arrival_time.is_none()
+            || stop.timetable.scheduled_arrival_time.is_none()
+        {
+            continue;
+        }
 
-    println!("{}: {} km/h", status.train_type, status.speed);
+        let actual_time = DateTime::<Local>::from(stop.timetable.actual_arrival_time.unwrap());
+        let scheduled_time =
+            DateTime::<Local>::from(stop.timetable.scheduled_arrival_time.unwrap());
+
+        println!(
+            "Next stop: {} ({}) {} -- {} km/h",
+            actual_time.format("%H:%M").to_string(),
+            scheduled_time.format("%H:%M").to_string(),
+            stop.station.name,
+            status.speed
+        );
+        break;
+    }
 }
