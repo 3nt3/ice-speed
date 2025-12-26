@@ -1,14 +1,5 @@
-# ICE speed
-
-Application to show info about your journey on long distance deutsche bahn trains.
-
-
-## Usage with waybar
-
-```json
 "custom/ice-speed": {
     "exec-if": "nmcli c show --active | grep -q WIFIonICE",
     "exec": "/home/ente/src/3nt3/ice-speed/target/release/ice-speed",
     "interval": 5
 },
-```
